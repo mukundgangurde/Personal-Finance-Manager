@@ -4,6 +4,7 @@ import com.projects.dto.DashboardSummary;
 import com.projects.entity.Expense;
 import com.projects.entity.Income;
 import com.projects.entity.Investment;
+import com.projects.entity.User;
 import com.projects.repository.ExpenseRepository;
 import com.projects.repository.IncomeRepository;
 import com.projects.repository.InvestmentRepository;
@@ -28,11 +29,11 @@ public class DashboardService {
         this.investmentRepository = investmentRepository;
     }
 
-    public DashboardSummary getSummary() {
+    public DashboardSummary getSummary(User user) {
 
-        List<Expense> expenses = expenseRepository.findAll();
-        List<Income> incomes = incomeRepository.findAll();
-        List<Investment> investments = investmentRepository.findAll();
+        List<Expense> expenses = expenseRepository.findAllByUserId(user.getId());
+        List<Income> incomes = incomeRepository.findAllByUserId(user.getId());
+        List<Investment> investments = investmentRepository.findAllByUserId(user.getId());
 
         double totalExpense = expenses.stream()
                 .mapToDouble(Expense::getAmount)

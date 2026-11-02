@@ -41,6 +41,14 @@ button {
   cursor: pointer;
 }
 
+.arrow-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
 
 /* =========================================
    NAVBAR
@@ -148,6 +156,11 @@ button {
   transition:
     background 0.2s ease,
     color 0.2s ease;
+}
+
+.nav-direction-icon {
+  width: 16px;
+  height: 16px;
 }
 
 .nav-link:hover {
@@ -351,6 +364,11 @@ button {
   background: #f3f4f6;
 
   color: #374151;
+}
+
+.summary-icon .arrow-icon {
+  width: 18px;
+  height: 18px;
 }
 
 .income-icon {
@@ -754,6 +772,11 @@ tbody tr:last-child td {
   font-size: 22px;
 
   margin-bottom: 15px;
+}
+
+.empty-icon .arrow-icon {
+  width: 25px;
+  height: 25px;
 }
 
 .empty-state h3 {

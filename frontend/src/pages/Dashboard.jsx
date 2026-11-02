@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 
 import { getDashboardSummary } from "../services/api"
+import ArrowIcon from "../components/ArrowIcon"
 
 
 function Dashboard() {
@@ -118,7 +119,7 @@ function Dashboard() {
             </span>
 
             <span className="summary-icon income-icon">
-              ↑
+              <ArrowIcon direction="up" />
             </span>
           </div>
 
@@ -142,7 +143,7 @@ function Dashboard() {
             </span>
 
             <span className="summary-icon expense-icon">
-              ↓
+              <ArrowIcon direction="down" />
             </span>
 
           </div>
@@ -248,7 +249,7 @@ function Dashboard() {
             </span>
 
             <span className="summary-icon profit-icon">
-              ↗
+              <ArrowIcon direction="up-right" />
             </span>
 
           </div>

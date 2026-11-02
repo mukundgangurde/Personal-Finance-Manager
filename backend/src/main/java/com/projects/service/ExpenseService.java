@@ -2,7 +2,10 @@ package com.projects.service;
 
 import com.projects.entity.Expense;
 import com.projects.repository.ExpenseRepository;
+import com.projects.entity.User;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -15,26 +18,23 @@ public class ExpenseService {
         this.expenseRepository = expenseRepository;
     }
 
-    public Expense addExpense(Expense expense) {
+    public Expense addExpense(Expense expense, User user) {
+        expense.setId(null);
+        expense.setUser(user);
         return expenseRepository.save(expense);
     }
 
-    public List<Expense> getAllExpenses() {
-        return expenseRepository.findAll();
+    public List<Expense> getAllExpenses(User user) {
+        return expenseRepository.findAllByUserId(user.getId());
     }
 
-    public Expense getExpenseById(Long id) {
-        return expenseRepository.findById(id).orElse(null);
+    public Expense getExpenseById(Long id, User user) {
+        return expenseRepository.findByIdAndUserId(id, user.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
-    public Expense updateExpense(Long id, Expense updatedExpense) {
-
-        Expense existingExpense =
-                expenseRepository.findById(id).orElse(null);
-
-        if (existingExpense == null) {
-            return null;
-        }
+    public Expense updateExpense(Long id, Expense updatedExpense, User user) {
+        Expense existingExpense = getExpenseById(id, user);
 
         existingExpense.setAmount(updatedExpense.getAmount());
         existingExpense.setCategory(updatedExpense.getCategory());
@@ -45,7 +45,9 @@ public class ExpenseService {
         return expenseRepository.save(existingExpense);
     }
 
-    public void deleteExpense(Long id) {
-        expenseRepository.deleteById(id);
+    public void deleteExpense(Long id, User user) {
+        if (expenseRepository.deleteByIdAndUserId(id, user.getId()) == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
     }
 }

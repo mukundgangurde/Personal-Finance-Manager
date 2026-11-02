@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import ArrowIcon from "../components/ArrowIcon"
 
 import ExpenseForm from "../components/ExpenseForm"
 
@@ -213,7 +214,7 @@ function Expenses() {
 
           <div className="empty-state">
 
-            <div className="empty-icon">↓</div>
+            <div className="empty-icon"><ArrowIcon direction="down" /></div>
 
             <h3>No expenses yet</h3>
 
