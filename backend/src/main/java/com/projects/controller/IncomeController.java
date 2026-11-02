@@ -2,13 +2,14 @@ package com.projects.controller;
 
 import com.projects.entity.Income;
 import com.projects.service.IncomeService;
+import com.projects.entity.User;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/income")
-@CrossOrigin(origins = "*")
 public class IncomeController {
 
     private final IncomeService incomeService;
@@ -18,30 +19,31 @@ public class IncomeController {
     }
 
     @PostMapping
-    public Income addIncome(@RequestBody Income income) {
-        return incomeService.addIncome(income);
+    public Income addIncome(@RequestBody Income income, @AuthenticationPrincipal User user) {
+        return incomeService.addIncome(income, user);
     }
 
     @GetMapping
-    public List<Income> getAllIncome() {
-        return incomeService.getAllIncome();
+    public List<Income> getAllIncome(@AuthenticationPrincipal User user) {
+        return incomeService.getAllIncome(user);
     }
 
     @GetMapping("/{id}")
-    public Income getIncomeById(@PathVariable Long id) {
-        return incomeService.getIncomeById(id);
+    public Income getIncomeById(@PathVariable Long id, @AuthenticationPrincipal User user) {
+        return incomeService.getIncomeById(id, user);
     }
 
     @PutMapping("/{id}")
     public Income updateIncome(
             @PathVariable Long id,
-            @RequestBody Income income) {
+            @RequestBody Income income,
+            @AuthenticationPrincipal User user) {
 
-        return incomeService.updateIncome(id, income);
+        return incomeService.updateIncome(id, income, user);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteIncome(@PathVariable Long id) {
-        incomeService.deleteIncome(id);
+    public void deleteIncome(@PathVariable Long id, @AuthenticationPrincipal User user) {
+        incomeService.deleteIncome(id, user);
     }
 }

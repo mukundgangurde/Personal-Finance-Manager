@@ -1,6 +1,21 @@
 import { NavLink } from "react-router-dom"
+import { useState } from "react"
+import ArrowIcon from "./ArrowIcon"
+import { useAuth } from "../context/useAuth"
 
 function Navbar() {
+  const { user, signOut } = useAuth()
+  const [error, setError] = useState("")
+
+  const handleSignOut = async () => {
+    setError("")
+    try {
+      await signOut()
+    } catch {
+      setError("Unable to sign out. Please try again.")
+    }
+  }
+
   return (
     <nav className="navbar">
       <div className="navbar-inner">
@@ -38,7 +53,7 @@ function Navbar() {
               isActive ? "nav-link active" : "nav-link"
             }
           >
-            <span>↓</span>
+            <ArrowIcon className="nav-direction-icon" direction="down" />
             Expenses
           </NavLink>
 
@@ -48,7 +63,7 @@ function Navbar() {
               isActive ? "nav-link active" : "nav-link"
             }
           >
-            <span>↑</span>
+            <ArrowIcon className="nav-direction-icon" direction="up" />
             Income
           </NavLink>
 
@@ -64,7 +79,12 @@ function Navbar() {
 
         </div>
 
+        <div className="nav-account">
+          <span className="nav-account-email">{user?.email}</span>
+          <button className="nav-signout" onClick={handleSignOut} type="button">Sign out</button>
+        </div>
       </div>
+      {error && <span className="nav-auth-error" role="alert">{error}</span>}
     </nav>
   )
 }

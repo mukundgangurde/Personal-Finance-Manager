@@ -2,7 +2,10 @@ package com.projects.service;
 
 import com.projects.entity.Investment;
 import com.projects.repository.InvestmentRepository;
+import com.projects.entity.User;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -15,26 +18,23 @@ public class InvestmentService {
         this.investmentRepository = investmentRepository;
     }
 
-    public Investment addInvestment(Investment investment) {
+    public Investment addInvestment(Investment investment, User user) {
+        investment.setId(null);
+        investment.setUser(user);
         return investmentRepository.save(investment);
     }
 
-    public List<Investment> getAllInvestment() {
-        return investmentRepository.findAll();
+    public List<Investment> getAllInvestment(User user) {
+        return investmentRepository.findAllByUserId(user.getId());
     }
 
-    public Investment getInvestmentById(Long id) {
-        return investmentRepository.findById(id).orElse(null);
+    public Investment getInvestmentById(Long id, User user) {
+        return investmentRepository.findByIdAndUserId(id, user.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
-    public Investment updateInvestment(Long id, Investment updatedInvestment) {
-
-        Investment existingInvestment =
-                investmentRepository.findById(id).orElse(null);
-
-        if (existingInvestment == null) {
-            return null;
-        }
+    public Investment updateInvestment(Long id, Investment updatedInvestment, User user) {
+        Investment existingInvestment = getInvestmentById(id, user);
 
         existingInvestment.setType(updatedInvestment.getType());
         existingInvestment.setName(updatedInvestment.getName());
@@ -48,7 +48,9 @@ public class InvestmentService {
         return investmentRepository.save(existingInvestment);
     }
 
-    public void deleteInvestment(Long id) {
-        investmentRepository.deleteById(id);
+    public void deleteInvestment(Long id, User user) {
+        if (investmentRepository.deleteByIdAndUserId(id, user.getId()) == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
     }
 }

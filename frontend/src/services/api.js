@@ -1,186 +1,114 @@
-const API_URL = "http://localhost:8080/api"
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080/api"
 
-// =========================
-// EXPENSE API
-// =========================
-
-export const getExpenses = async () => {
-  const response = await fetch(`${API_URL}/expenses`)
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch expenses")
+export class ApiError extends Error {
+  constructor(message, status) {
+    super(message)
+    this.name = "ApiError"
+    this.status = status
   }
-
-  return response.json()
 }
 
-export const addExpense = async (expense) => {
-  const response = await fetch(`${API_URL}/expenses`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(expense),
+const readCookie = (name) => {
+  const cookie = document.cookie
+    .split("; ")
+    .find((item) => item.startsWith(`${name}=`))
+
+  return cookie ? decodeURIComponent(cookie.slice(name.length + 1)) : ""
+}
+
+const loadCsrfCookie = async () => {
+  const response = await fetch(`${API_URL}/auth/csrf`, {
+    credentials: "include",
   })
 
   if (!response.ok) {
-    throw new Error("Failed to add expense")
+    throw new ApiError("Unable to initialize a secure request.", response.status)
   }
-
-  return response.json()
 }
 
-export const updateExpense = async (id, expense) => {
-  const response = await fetch(`${API_URL}/expenses/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(expense),
+const apiRequest = async (path, options = {}) => {
+  const method = options.method ?? "GET"
+  const headers = new Headers(options.headers)
+
+  if (!["GET", "HEAD", "OPTIONS"].includes(method.toUpperCase())) {
+    await loadCsrfCookie()
+    const csrfToken = readCookie("XSRF-TOKEN")
+    if (!csrfToken) {
+      throw new ApiError("Unable to initialize a secure request.", 0)
+    }
+    headers.set("X-XSRF-TOKEN", csrfToken)
+  }
+
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    method,
+    headers,
+    credentials: "include",
   })
 
   if (!response.ok) {
-    throw new Error("Failed to update expense")
+    let message = `Request failed (${response.status}).`
+    try {
+      const body = await response.json()
+      message = body.detail ?? body.message ?? message
+    } catch {
+      // Some successful or error responses do not include a JSON body.
+    }
+    throw new ApiError(message, response.status)
   }
 
-  return response.json()
+  if (response.status === 204) return null
+  const contentType = response.headers.get("content-type") ?? ""
+  return contentType.includes("application/json") ? response.json() : null
 }
 
-export const deleteExpense = async (id) => {
-  const response = await fetch(`${API_URL}/expenses/${id}`, {
-    method: "DELETE",
-  })
+const jsonRequest = (method, body) => ({
+  method,
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(body),
+})
 
-  if (!response.ok) {
-    throw new Error("Failed to delete expense")
-  }
-}
+export const register = (credentials) =>
+  apiRequest("/auth/register", jsonRequest("POST", credentials))
 
+export const login = (credentials) =>
+  apiRequest("/auth/login", jsonRequest("POST", credentials))
 
-// =========================
-// INCOME API
-// =========================
+export const getCurrentUser = () => apiRequest("/auth/me")
 
-export const getIncome = async () => {
-  const response = await fetch(`${API_URL}/income`)
+export const logout = () => apiRequest("/auth/logout", { method: "POST" })
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch income")
-  }
+export const getExpenses = () => apiRequest("/expenses")
 
-  return response.json()
-}
+export const addExpense = (expense) =>
+  apiRequest("/expenses", jsonRequest("POST", expense))
 
-export const addIncome = async (income) => {
-  const response = await fetch(`${API_URL}/income`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(income),
-  })
+export const updateExpense = (id, expense) =>
+  apiRequest(`/expenses/${id}`, jsonRequest("PUT", expense))
 
-  if (!response.ok) {
-    throw new Error("Failed to add income")
-  }
+export const deleteExpense = (id) =>
+  apiRequest(`/expenses/${id}`, { method: "DELETE" })
 
-  return response.json()
-}
+export const getIncome = () => apiRequest("/income")
 
-export const updateIncome = async (id, income) => {
-  const response = await fetch(`${API_URL}/income/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(income),
-  })
+export const addIncome = (income) =>
+  apiRequest("/income", jsonRequest("POST", income))
 
-  if (!response.ok) {
-    throw new Error("Failed to update income")
-  }
+export const updateIncome = (id, income) =>
+  apiRequest(`/income/${id}`, jsonRequest("PUT", income))
 
-  return response.json()
-}
+export const deleteIncome = (id) =>
+  apiRequest(`/income/${id}`, { method: "DELETE" })
 
-export const deleteIncome = async (id) => {
-  const response = await fetch(`${API_URL}/income/${id}`, {
-    method: "DELETE",
-  })
+export const getInvestments = () => apiRequest("/investments")
 
-  if (!response.ok) {
-    throw new Error("Failed to delete income")
-  }
-}
+export const addInvestment = (investment) =>
+  apiRequest("/investments", jsonRequest("POST", investment))
 
+export const updateInvestment = (id, investment) =>
+  apiRequest(`/investments/${id}`, jsonRequest("PUT", investment))
 
-// =========================
-// INVESTMENT API
-// =========================
+export const deleteInvestment = (id) =>
+  apiRequest(`/investments/${id}`, { method: "DELETE" })
 
-export const getInvestments = async () => {
-  const response = await fetch(`${API_URL}/investments`)
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch investments")
-  }
-
-  return response.json()
-}
-
-export const addInvestment = async (investment) => {
-  const response = await fetch(`${API_URL}/investments`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(investment),
-  })
-
-  if (!response.ok) {
-    throw new Error("Failed to add investment")
-  }
-
-  return response.json()
-}
-
-export const updateInvestment = async (id, investment) => {
-  const response = await fetch(`${API_URL}/investments/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(investment),
-  })
-
-  if (!response.ok) {
-    throw new Error("Failed to update investment")
-  }
-
-  return response.json()
-}
-
-export const deleteInvestment = async (id) => {
-  const response = await fetch(`${API_URL}/investments/${id}`, {
-    method: "DELETE",
-  })
-
-  if (!response.ok) {
-    throw new Error("Failed to delete investment")
-  }
-}
-
-
-// =========================
-// DASHBOARD API
-// =========================
-
-export const getDashboardSummary = async () => {
-  const response = await fetch(`${API_URL}/dashboard/summary`)
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch dashboard summary")
-  }
-
-  return response.json()
-}
+export const getDashboardSummary = () => apiRequest("/dashboard/summary")
